@@ -6,34 +6,57 @@ import re
 
 # Page configuration
 st.set_page_config(
-    page_title="Customer Support Agent - DeepSeek",
-    page_icon="🎧",
+    page_title="AI Persona Assistant - DeepSeek",
+    page_icon="🤖",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# Custom CSS for the exact look
+# Custom CSS for navigation bar and styling
 st.markdown("""
 <style>
-    /* Main container styling */
-    .main {
-        background-color: #f8f9fa;
-    }
-    
-    /* Configuration section */
-    .config-section {
-        background-color: white;
-        padding: 1.5rem;
+    /* Navigation Bar Styling */
+    .navbar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem 2rem;
         border-radius: 0.5rem;
         margin-bottom: 2rem;
-        border: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
     }
     
-    .config-title {
-        font-size: 1.2rem;
+    .navbar-brand {
+        font-size: 1.5rem;
         font-weight: bold;
-        margin-bottom: 1rem;
-        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .navbar-menu {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .nav-item {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .nav-item-active {
+        background: white;
+        color: #667eea;
+        font-weight: bold;
     }
     
     /* Chat message styling */
@@ -56,38 +79,26 @@ st.markdown("""
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     
-    /* Header styling */
-    .chat-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
+    /* Configuration section */
+    .config-section {
+        background-color: white;
+        padding: 1.5rem;
         border-radius: 0.5rem;
         margin-bottom: 2rem;
-        text-align: center;
+        border: 1px solid #e0e0e0;
     }
     
-    /* Input area */
-    .stTextInput > div > div > input {
+    /* Persona badge */
+    .persona-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
         border-radius: 2rem;
-        padding: 1rem;
-        font-size: 1rem;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        font-weight: bold;
     }
     
-    /* Button styling */
-    .stButton > button {
-        border-radius: 2rem;
-        padding: 0.5rem 1.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-    }
-    
-    /* Sidebar styling */
-    .css-1d391kg {
-        background-color: #f8f9fa;
-    }
-    
-    /* Welcome message */
+    /* Welcome box */
     .welcome-box {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -97,28 +108,8 @@ st.markdown("""
         margin-bottom: 2rem;
     }
     
-    /* Persona badge */
-    .persona-badge {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background-color: #e8f5e9;
-        color: #2e7d32;
-        border-radius: 2rem;
-        font-size: 0.875rem;
-        margin-bottom: 1rem;
-    }
-    
-    /* Delivery possibility section */
-    .delivery-section {
-        background-color: #fff3e0;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-top: 2rem;
-        border-left: 4px solid #ff9800;
-    }
-    
-    /* Creative winter styling */
-    .creative-footer {
+    /* Footer */
+    .footer {
         background-color: #1a1a2e;
         color: white;
         padding: 1rem;
@@ -127,15 +118,123 @@ st.markdown("""
         margin-top: 2rem;
     }
     
-    /* Timer styling */
+    /* Timer */
     .timer {
         font-family: monospace;
-        font-size: 0.875rem;
+        font-size: 0.75rem;
         color: #666;
         margin-top: 0.5rem;
     }
+    
+    /* Persona info card */
+    .persona-info {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: #f8f9fa;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# Persona definitions with detailed prompts
+PERSONAS = {
+    "content_creator": {
+        "name": "Content Creator - Reel Specialist",
+        "short_name": "🎬 Reel Creator",
+        "icon": "🎬",
+        "emoji": "📱",
+        "color": "#FF6B6B",
+        "badge_color": "#ffebee",
+        "text_color": "#c62828",
+        "description": "Expert in creating viral reel content, trends, and engagement strategies",
+        "welcome": "Hey creator! 🎬 I'm your Reel Specialist. Ready to make some viral content? Ask me about trending sounds, hook strategies, or editing tips!",
+        "placeholder": "E.g., 'What are trending reel concepts for fitness?' or 'How to write better hooks for cooking reels?'",
+        "system_prompt": """You are a professional Content Creator specializing in Reels and Short-form video content. Your expertise includes:
+- Viral reel concepts and trends
+- Hook strategies for first 3 seconds
+- Caption writing for maximum engagement
+- Hashtag strategies
+- Transition and editing ideas
+- Platform-specific advice (Instagram, TikTok, YouTube Shorts)
+- Sound and music selection
+- Engagement optimization
+
+When responding:
+1. Always provide specific, actionable advice
+2. Include examples of successful reels
+3. Break down complex concepts into simple steps
+4. Suggest trending audio and hashtags when relevant
+5. Be enthusiastic and creative in your responses
+6. Ask clarifying questions when needed
+7. Format with emojis for better readability"""
+    },
+    "content_writer": {
+        "name": "Content Writer",
+        "short_name": "✍️ Writer",
+        "icon": "✍️",
+        "emoji": "📝",
+        "color": "#4ECDC4",
+        "badge_color": "#e0f2f1",
+        "text_color": "#00695c",
+        "description": "Expert in writing, editing, and content strategy for all formats",
+        "welcome": "Welcome to your Writing Assistant! ✍️ Need help with blog posts, SEO, copywriting, or editing? I've got you covered!",
+        "placeholder": "E.g., 'Write a blog outline about AI' or 'Improve this headline: [your text]'",
+        "system_prompt": """You are a professional Content Writer and Editor. Your expertise includes:
+- Blog post writing and structuring
+- SEO optimization techniques
+- Copywriting for marketing
+- Email newsletters
+- Social media captions
+- Proofreading and editing
+- Tone adaptation (formal, casual, humorous, professional)
+- Storytelling techniques
+- Headline writing
+
+When responding:
+1. Provide clear, well-structured writing advice
+2. Offer specific examples and templates
+3. Explain the reasoning behind your suggestions
+4. Adapt tone based on the target audience
+5. Include SEO tips when relevant
+6. Use proper formatting with headings and bullet points"""
+    },
+    "customer_support": {
+        "name": "Customer Support Agent",
+        "short_name": "🎧 Support",
+        "icon": "🎧",
+        "emoji": "💬",
+        "color": "#45B7D1",
+        "badge_color": "#e1f5fe",
+        "text_color": "#0277bd",
+        "description": "Professional customer support for product, service, and technical inquiries",
+        "welcome": "Hello! I'm your Customer Support Agent. 🎧 How can I assist you today? I'm here to help with any issues or questions!",
+        "placeholder": "E.g., 'I'm facing internet connection problems' or 'How do I request a refund?'",
+        "system_prompt": """You are a professional Customer Support Agent. Your expertise includes:
+- Troubleshooting technical issues
+- Explaining product features and policies
+- Handling complaints professionally
+- Providing step-by-step solutions
+- Escalation procedures
+- Empathetic communication
+- FAQ responses
+- Return and refund processes
+- Account management guidance
+
+When responding:
+1. Be polite, patient, and empathetic
+2. Provide clear, step-by-step instructions
+3. Acknowledge the customer's frustration when applicable
+4. Offer alternative solutions when possible
+5. Use professional but friendly language
+6. Ask clarifying questions to better understand issues
+7. Confirm when issues are resolved"""
+    }
+}
 
 # Initialize session state
 if 'api_key' not in st.session_state:
@@ -144,35 +243,10 @@ if 'messages' not in st.session_state:
     st.session_state.messages = []
 if 'api_key_valid' not in st.session_state:
     st.session_state.api_key_valid = False
+if 'current_persona' not in st.session_state:
+    st.session_state.current_persona = "customer_support"
 if 'use_secrets' not in st.session_state:
     st.session_state.use_secrets = False
-
-# Persona configurations
-PERSONAS = {
-    "customer_support": {
-        "name": "Customer Support Agent",
-        "icon": "🎧",
-        "welcome": "Hello! I'm now your Customer Support Agent. How can I assist you today?",
-        "system_prompt": """You are a professional Customer Support Agent. Your expertise includes:
-- Troubleshooting technical issues
-- Handling customer complaints professionally
-- Providing step-by-step solutions
-- Being empathetic and patient
-- Explaining policies clearly
-- Offering alternative solutions when needed
-
-When responding:
-1. Be polite, patient, and empathetic
-2. Acknowledge the customer's frustration when applicable
-3. Provide clear, step-by-step instructions
-4. Ask clarifying questions to better understand issues
-5. Offer to help further at the end of responses
-6. Use a warm, friendly tone with occasional emojis
-7. Confirm understanding before proceeding with solutions
-
-Always prioritize customer satisfaction while providing accurate information."""
-    }
-}
 
 # API Configuration
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -203,21 +277,23 @@ def test_api_key(api_key):
     except:
         return False
 
-def send_message(message, api_key):
-    """Send message to OpenRouter API with customer support persona"""
+def send_message(message, api_key, persona_key):
+    """Send message to OpenRouter API with selected persona"""
+    
+    persona = PERSONAS[persona_key]
     
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://customer-support-app.streamlit.app",
-        "X-Title": "Customer Support Agent"
+        "HTTP-Referer": "https://ai-persona-assistant.streamlit.app",
+        "X-Title": f"AI Persona - {persona['name']}"
     }
     
     # Build messages with system prompt
     messages = [
         {
             "role": "system",
-            "content": PERSONAS["customer_support"]["system_prompt"]
+            "content": persona["system_prompt"]
         }
     ]
     
@@ -239,7 +315,7 @@ def send_message(message, api_key):
     }
     
     try:
-        with st.spinner("Customer Support Agent is typing..."):
+        with st.spinner(f"{persona['icon']} {persona['name']} is thinking..."):
             response = requests.post(API_URL, headers=headers, json=data, timeout=30)
         
         if response.status_code == 200:
@@ -252,85 +328,158 @@ def send_message(message, api_key):
     except Exception as e:
         return None, f"Error: {str(e)}"
 
-# ==================== MAIN UI ====================
+def switch_persona(persona_key):
+    """Switch to a different persona and clear conversation"""
+    if st.session_state.current_persona != persona_key:
+        st.session_state.current_persona = persona_key
+        st.session_state.messages = []
+        return True
+    return False
 
-# Header
-st.markdown("""
-<div class="chat-header">
-    <h1>🎧 Customer Support Agent</h1>
-    <p>Powered by DeepSeek AI | 24/7 Professional Support</p>
+# ==================== NAVIGATION BAR ====================
+
+# Navigation Bar
+st.markdown(f"""
+<div class="navbar">
+    <div class="navbar-brand">
+        <span>🤖</span>
+        <span>AI Persona Assistant</span>
+    </div>
+    <div class="navbar-menu">
+        <div class="nav-item {'nav-item-active' if st.session_state.current_persona == 'content_creator' else ''}" onclick="alert('Click the button in sidebar')">
+            🎬 Reel Creator
+        </div>
+        <div class="nav-item {'nav-item-active' if st.session_state.current_persona == 'content_writer' else ''}" onclick="alert('Click the button in sidebar')">
+            ✍️ Writer
+        </div>
+        <div class="nav-item {'nav-item-active' if st.session_state.current_persona == 'customer_support' else ''}" onclick="alert('Click the button in sidebar')">
+            🎧 Support
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Configuration Section
-with st.expander("⚙️ Configuration", expanded=not st.session_state.api_key_valid):
-    st.markdown("### API Key")
+# Sidebar for navigation and controls
+with st.sidebar:
+    st.markdown("### 🧭 Navigation")
+    st.markdown("---")
     
-    # API Key Source
-    api_source = st.radio(
-        "API Key Source",
-        ["Enter manually", "Use from secrets.toml"],
-        index=0 if not st.session_state.use_secrets else 1
-    )
+    # Persona selection in sidebar
+    st.markdown("#### 🎭 Select AI Persona")
     
-    if api_source == "Enter manually":
-        api_key_input = st.text_input(
-            "OpenRouter API Key",
-            type="password",
-            placeholder="sk-or-v1-...",
-            help="Get your API key from https://openrouter.ai/keys"
+    for persona_key, persona in PERSONAS.items():
+        is_active = st.session_state.current_persona == persona_key
+        button_style = "primary" if is_active else "secondary"
+        
+        if st.button(
+            f"{persona['icon']} {persona['name']}",
+            key=f"nav_{persona_key}",
+            use_container_width=True,
+            type=button_style
+        ):
+            if switch_persona(persona_key):
+                st.rerun()
+    
+    st.markdown("---")
+    
+    # API Configuration Section
+    st.markdown("### 🔑 API Configuration")
+    
+    if not st.session_state.api_key_valid:
+        api_source = st.radio(
+            "API Key Source",
+            ["Enter manually", "Use from secrets.toml"],
+            index=0
         )
         
-        if api_key_input:
-            if validate_api_key(api_key_input):
-                if st.button("✅ Connect"):
-                    with st.spinner("Testing API key..."):
+        if api_source == "Enter manually":
+            api_key_input = st.text_input(
+                "OpenRouter API Key",
+                type="password",
+                placeholder="sk-or-v1-...",
+                help="Get your key from openrouter.ai/keys"
+            )
+            
+            if api_key_input and validate_api_key(api_key_input):
+                if st.button("✅ Connect", use_container_width=True):
+                    with st.spinner("Testing..."):
                         if test_api_key(api_key_input):
                             st.session_state.api_key = api_key_input
                             st.session_state.api_key_valid = True
-                            st.success("✅ Connected successfully!")
+                            st.success("Connected!")
                             st.rerun()
                         else:
-                            st.error("❌ Invalid API key. Please check and try again.")
-            else:
-                st.error("Invalid API key format. Key should start with 'sk-or-v1-'")
-    
+                            st.error("Invalid key")
+        else:
+            st.info("Using secrets.toml")
+            if st.button("Load from secrets"):
+                st.warning("Configure secrets.toml with OPENROUTER_API_KEY")
     else:
-        st.info("📁 Using API key from secrets.toml file")
-        if st.button("🔑 Load from secrets"):
-            try:
-                # This would load from secrets in production
-                # For now, show a message
-                st.warning("Please configure your secrets.toml file with OPENROUTER_API_KEY")
-            except:
-                st.error("No API key found in secrets.toml")
+        st.success("✅ API Key Connected")
+        if st.button("🔄 Change API Key", use_container_width=True):
+            st.session_state.api_key = None
+            st.session_state.api_key_valid = False
+            st.session_state.messages = []
+            st.rerun()
     
     st.markdown("---")
-    st.markdown("[🔗 Get an OpenRouter API key](https://openrouter.ai/keys)")
+    st.markdown("[🔗 Get API Key](https://openrouter.ai/keys)")
     
-    # AI Persona Selection
-    st.markdown("### AI Persona")
-    selected_persona = st.selectbox(
-        "Choose AI Persona",
-        ["Customer Support Agent"],
-        index=0
-    )
+    # Session controls
+    if st.session_state.api_key_valid:
+        st.markdown("---")
+        st.markdown("### 🛠️ Controls")
+        
+        if st.button("🗑️ Clear Conversation", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+        
+        # Stats
+        st.markdown("---")
+        st.markdown("### 📊 Stats")
+        st.metric("Messages", len(st.session_state.messages))
+        st.metric("Active Persona", PERSONAS[st.session_state.current_persona]["short_name"])
 
-# Show welcome message if API key is not connected
+# Main content area
+current_persona = PERSONAS[st.session_state.current_persona]
+
 if not st.session_state.api_key_valid:
-    st.markdown("""
+    # Welcome screen
+    st.markdown(f"""
     <div class="welcome-box">
-        <h2>👋 Welcome to Customer Support Agent</h2>
-        <p>Please configure your API key above to start receiving professional customer support assistance.</p>
+        <h2>👋 Welcome to AI Persona Assistant!</h2>
+        <p>Choose from specialized AI personas and get expert assistance</p>
         <br>
-        <p>✨ <strong>Features:</strong> 24/7 availability, professional responses, troubleshooting guides, and empathetic support.</p>
+        <h3>🎭 Available Personas:</h3>
+        <table style="width: 100%; text-align: left; margin-top: 1rem;">
+            <tr>
+                <td>🎬 <strong>Content Creator - Reel Specialist</strong></td>
+                <td>Viral content, trends, hooks, editing tips</td>
+            </tr>
+            <tr>
+                <td>✍️ <strong>Content Writer</strong></td>
+                <td>Blogs, SEO, copywriting, editing</td>
+            </tr>
+            <tr>
+                <td>🎧 <strong>Customer Support Agent</strong></td>
+                <td>Troubleshooting, policies, professional responses</td>
+            </tr>
+        </table>
+        <br>
+        <p>✨ <strong>Get started:</strong> Configure your API key in the sidebar!</p>
     </div>
     """, unsafe_allow_html=True)
 else:
-    # Display welcome message
+    # Show current persona info
     st.markdown(f"""
-    <div class="persona-badge">
-        🎧 Active Persona: Customer Support Agent
+    <div class="persona-info">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="font-size: 3rem;">{current_persona['icon']}</div>
+            <div>
+                <h2 style="margin: 0;">{current_persona['name']}</h2>
+                <p style="margin: 0; color: #666;">{current_persona['description']}</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -347,100 +496,90 @@ else:
         else:
             st.markdown(f"""
             <div class="assistant-message">
-                <strong>🎧 Customer Support Agent</strong><br>
+                <strong>{current_persona['icon']} {current_persona['name']}</strong><br>
                 {message["content"]}
                 <div class="timer">🕐 {message.get("timestamp", "")}</div>
             </div>
             """, unsafe_allow_html=True)
     
-    # If no messages, show welcome
+    # Show welcome message if no messages
     if len(st.session_state.messages) == 0:
         st.markdown(f"""
         <div class="assistant-message">
-            <strong>🎧 Customer Support Agent</strong><br>
-            {PERSONAS["customer_support"]["welcome"]}
+            <strong>{current_persona['icon']} {current_persona['name']}</strong><br>
+            {current_persona['welcome']}
         </div>
         """, unsafe_allow_html=True)
-        # Add welcome to messages
         st.session_state.messages.append({
             "role": "assistant",
-            "content": PERSONAS["customer_support"]["welcome"],
+            "content": current_persona['welcome'],
             "timestamp": datetime.now().strftime("%I:%M %p")
         })
     
     # Chat input
     st.markdown("---")
-    user_input = st.text_input(
-        "Type your message here...",
-        placeholder="E.g., I'm facing problems with my internet connection",
-        key="user_input",
-        label_visibility="collapsed"
-    )
     
-    col1, col2, col3 = st.columns([4, 1, 4])
+    col1, col2, col3 = st.columns([1, 3, 1])
     with col2:
-        if st.button("📤 Send", use_container_width=True):
-            if user_input:
-                # Add user message
-                st.session_state.messages.append({
-                    "role": "user",
-                    "content": user_input,
-                    "timestamp": datetime.now().strftime("%I:%M %p")
-                })
-                
-                # Get response
-                response, error = send_message(user_input, st.session_state.api_key)
-                
-                if response:
+        user_input = st.text_area(
+            "💬 Type your message",
+            placeholder=current_persona['placeholder'],
+            key="user_input",
+            label_visibility="collapsed",
+            height=100
+        )
+        
+        col_send, col_clear = st.columns(2)
+        with col_send:
+            if st.button("📤 Send Message", use_container_width=True, type="primary"):
+                if user_input:
+                    # Add user message
                     st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": response,
+                        "role": "user",
+                        "content": user_input,
                         "timestamp": datetime.now().strftime("%I:%M %p")
                     })
-                else:
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": f"⚠️ {error}. Please try again or check your connection.",
-                        "timestamp": datetime.now().strftime("%I:%M %p")
-                    })
-                
+                    
+                    # Get response
+                    response, error = send_message(
+                        user_input, 
+                        st.session_state.api_key,
+                        st.session_state.current_persona
+                    )
+                    
+                    if response:
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "content": response,
+                            "timestamp": datetime.now().strftime("%I:%M %p")
+                        })
+                    else:
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "content": f"⚠️ {error}. Please try again.",
+                            "timestamp": datetime.now().strftime("%I:%M %p")
+                        })
+                    
+                    st.rerun()
+        
+        with col_clear:
+            if st.button("🗑️ Clear Chat", use_container_width=True):
+                st.session_state.messages = []
                 st.rerun()
 
-# Delivery Possibility Section (as shown in the image)
+# Footer
+st.markdown(f"""
+<div class="footer">
+    <strong>🎭 AI Persona Assistant</strong><br>
+    <small>Powered by DeepSeek AI | OpenRouter API</small><br>
+    <small>🎬 Reel Creator | ✍️ Content Writer | 🎧 Customer Support</small>
+</div>
+""", unsafe_allow_html=True)
+
+# Delivery possibility section (like in your image)
 st.markdown("""
-<div class="delivery-section">
+<div style="background-color: #fff3e0; padding: 0.75rem; border-radius: 0.5rem; margin-top: 1rem; border-left: 4px solid #ff9800;">
     <strong>📦 DELIVERY POSSIBILITY</strong><br>
-    <small>Customer Support Agent • Available 24/7 • Average response time: &lt; 30 seconds</small>
+    <small>All personas active • 24/7 availability • Average response: &lt; 30 seconds</small>
 </div>
 """, unsafe_allow_html=True)
-
-# Creative Winter Footer (matching the image)
-st.markdown("""
-<div class="creative-footer">
-    <strong>Creative Winter</strong><br>
-    <small>Professional Customer Support Solutions | Powered by DeepSeek AI</small>
-</div>
-""", unsafe_allow_html=True)
-
-# Add a timer effect in sidebar for visual appeal
-with st.sidebar:
-    st.markdown("### 📊 Session Info")
-    st.metric("Messages Exchanged", len(st.session_state.messages) // 2)
-    if st.button("🗑️ Clear Conversation", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
-    
-    st.markdown("---")
-    st.markdown("""
-    ### 💡 Quick Tips
-    
-    **Best practices for faster support:**
-    1. Be specific about your issue
-    2. Mention what you've already tried
-    3. Include error messages if any
-    4. Specify device/model if relevant
-    
-    ### 🕐 Support Hours
-    24/7 Automated Support
-    Human escalation available upon request
-    """)
